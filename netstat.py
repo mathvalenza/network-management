@@ -23,36 +23,67 @@ VALID_PARAMS = ['tcp', 'udp', '-e', '-a']
 ESTABLISHED_PARAM = '-e'
 ALL_PARAM = '-a'
 
+MAX_PORT_NUMBER = 65535 
+CELL_WIDTH = 22
+
 def main():
 	try:
-		protocol, status_param = get_command_line_params()
+		params = get_command_line_params()
 	except Exception as e:
 		print(e.args[0])
 		sys.exit()
-	# protocol = "udp"
+
+	port_param = ""
+
+	protocol, status_param = params[0], params[1]
+	if(len(params) == 3):
+		port_param = params[2]
+
+
 	content = parse_file(protocol)
 
-	print("----------------------- SHOWING " + protocol.upper() + " INFORMATIONS --------------------------")
-	print("Origin\tDestiny")
+	count_results = 0
+
+	print("\n---------------- MOSTRANDO INFORMAÇÕES " + protocol.upper() + " -------------------")
+	print("ORIGEM".ljust(CELL_WIDTH), "DESTINO".ljust(CELL_WIDTH-2), "STATUS DA CONEXÃO")
 
 	for line in content:
+		print_by_status = False
+		print_by_port = False
 		display = ""
 
 		host_origin, port_origin = get_host_and_port(line[1])
-		display += host_origin + ":" + port_origin + "\t"
+		display += (host_origin + ":" + port_origin).ljust(CELL_WIDTH)
+
 
 		host_destiny, port_destiny = get_host_and_port(line[2])
-		display += host_destiny + ":" + port_destiny + "\t"
+		display += (host_destiny + ":" + port_destiny).ljust(CELL_WIDTH)
+
 
 		connection_status = get_status(line[3])
-
-		display += connection_status
+		display += connection_status.ljust(CELL_WIDTH)
 
 		if(status_param == ALL_PARAM):
-			print(display)
+			print_by_status = True
 		elif(status_param == ESTABLISHED_PARAM and connection_status == "ESTABELECIDA"):
-			print(display)
+			print_by_status = True
 
+		if(port_param):
+			if(port_origin == port_param or port_destiny == port_param):
+				print_by_port = True
+			else:
+				print_by_port = False
+		else:
+			print_by_port = True
+
+		if(print_by_status and print_by_port):
+			print(display)
+			count_results += 1
+
+	if (count_results > 0):
+		print ("\nMostrando", count_results, "resultados.\n")
+	else:
+		print("\nNenhuma informação a ser mostrada\n")
 
 def get_host_and_port(string):
     host, port = string.split(':')
@@ -90,7 +121,9 @@ def get_command_line_params():
 	param_array = []
 
 	for param in sys.argv[1:]:
-		if(param in VALID_PARAMS or (int(param) > 0 and (int(param) < 9999)): #TODO: testar com regex
+		if(param in VALID_PARAMS):
+			param_array.append(param)
+		elif(int(param) > 0 and int(param) < MAX_PORT_NUMBER):
 			param_array.append(param)
 		else:
 			raise Exception("Parâmetro inválido."
