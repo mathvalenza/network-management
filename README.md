@@ -11,3 +11,5 @@ Execução: netstat.py [tcp, udp] [-e, -a] <NUMERO_DA_PORTA>
 Caso não informado algum parâmetro, a saída retornará as informações sem filtros.
 
 Dependências: python3.5.2+
+
+Autor: Matheus Vinícius Valenza
